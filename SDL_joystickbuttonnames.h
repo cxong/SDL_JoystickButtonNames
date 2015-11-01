@@ -41,12 +41,26 @@ extern "C" {
 int SDLJBN_GetButtonNameAndColor(SDL_Joystick *joystick,
                                  SDL_GameControllerButton button,
                                  char *s, Uint8 *r, Uint8 *g, Uint8 *b);
+/**
+ * Get the axis name and color for an SDL_GameControllerAxis
+ * Arguments can be set to NULL if they are not required
+ * Use SDLJBN_GetError to get the error reason
+ *
+ * \return -1 on error; 0 on success
+ */
+int SDLJBN_GetAxisNameAndColor(SDL_Joystick *joystick,
+                               SDL_GameControllerAxis axis,
+                               char *s, Uint8 *r, Uint8 *g, Uint8 *b);
 
 /* Convenience macros */
 #define SDLJBN_GetButtonName(joystick, button, s)\
 	SDLJBN_GetButtonNameAndColor(joystick, button, s, NULL, NULL, NULL);
 #define SDLJBN_GetButtonColor(joystick, button, r, g, b)\
 	SDLJBN_GetButtonNameAndColor(joystick, button, NULL, r, g, b);
+#define SDLJBN_GetAxisName(joystick, axis, s)\
+	SDLJBN_GetAxisNameAndColor(joystick, axis, s, NULL, NULL, NULL);
+#define SDLJBN_GetAxisColor(joystick, axis, r, g, b)\
+	SDLJBN_GetAxisNameAndColor(joystick, axis, NULL, r, g, b);
 
 const char *SDLJBN_GetError(void);
 

@@ -25,6 +25,7 @@
 #include "SDL_joystickbuttonnames.h"
 
 #include <stdio.h>
+#include <string.h>
 
 #include <SDL_pixels.h>
 
@@ -124,6 +125,77 @@ static SDL_Color DefaultButtonColor(SDL_GameControllerButton button)
 	case SDL_CONTROLLER_BUTTON_DPAD_DOWN: return NewColor(96, 128, 128);
 	case SDL_CONTROLLER_BUTTON_DPAD_LEFT: return NewColor(96, 128, 128);
 	case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: return NewColor(96, 128, 128);
+	default: return NewColor(0, 0, 0);
+	}
+}
+
+static const char *DefaultAxisName(SDL_GameControllerAxis axis);
+static SDL_Color DefaultAxisColor(SDL_GameControllerAxis axis);
+
+int SDLJBN_GetAxisNameAndColor(SDL_Joystick *joystick,
+                               SDL_GameControllerAxis axis,
+                               char *s, Uint8 *r, Uint8 *g, Uint8 *b)
+{
+	if (joystick == NULL)
+	{
+		err = "joystick is NULL";
+		return -1;
+	}
+	if (axis < SDL_CONTROLLER_AXIS_LEFTX || axis >= SDL_CONTROLLER_AXIS_MAX)
+	{
+		err = "axis is invalid";
+		return -1;
+	}
+	char guidBuf[256];
+	SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(joystick), guidBuf, 256);
+	printf("GUID: %s Name: \'%s\'\n", guidBuf, SDL_JoystickName(joystick));
+
+	if (s)
+	{
+		// Use our own defaults for the axis names
+		strcpy(s, DefaultAxisName(axis));
+	}
+	const SDL_Color defaultColor = DefaultAxisColor(axis);
+	if (r)
+	{
+		*r = defaultColor.r;
+	}
+	if (g)
+	{
+		*g = defaultColor.g;
+	}
+	if (b)
+	{
+		*b = defaultColor.b;
+	}
+	return 0;
+}
+
+static const char *DefaultAxisName(SDL_GameControllerAxis axis)
+{
+	switch (axis)
+	{
+	case SDL_CONTROLLER_AXIS_LEFTX: return "Left Stick X";
+	case SDL_CONTROLLER_AXIS_LEFTY: return "Left Stick Y";
+	case SDL_CONTROLLER_AXIS_RIGHTX: return "Right Stick X";
+	case SDL_CONTROLLER_AXIS_RIGHTY: return "Right Stick Y";
+	case SDL_CONTROLLER_AXIS_TRIGGERLEFT: return "LT";
+	case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: return "RT";
+	default: return "";
+	}
+}
+
+static SDL_Color DefaultAxisColor(SDL_GameControllerAxis axis)
+{
+	// Default colors for Xbox 360 controller
+	switch (axis)
+	{
+	case SDL_CONTROLLER_AXIS_LEFTX: return NewColor(96, 128, 128);
+	case SDL_CONTROLLER_AXIS_LEFTY: return NewColor(96, 128, 128);
+	case SDL_CONTROLLER_AXIS_RIGHTX: return NewColor(96, 128, 128);
+	case SDL_CONTROLLER_AXIS_RIGHTY: return NewColor(96, 128, 128);
+	case SDL_CONTROLLER_AXIS_TRIGGERLEFT: return NewColor(224, 224, 224);
+	case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: return NewColor(224, 224, 224);
 	default: return NewColor(0, 0, 0);
 	}
 }

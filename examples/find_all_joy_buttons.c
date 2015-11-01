@@ -65,6 +65,7 @@ int main(int argc, char *argv[])
 
 		fprintf(f, "(%s): ", SDL_JoystickName(j));
 
+		fprintf(f, "<br>");
 		for (SDL_GameControllerButton button = SDL_CONTROLLER_BUTTON_A;
 			button < SDL_CONTROLLER_BUTTON_MAX;
 			button++)
@@ -74,6 +75,22 @@ int main(int argc, char *argv[])
 			if (SDLJBN_GetButtonNameAndColor(j, button, buf, &r, &g, &b) != 0)
 			{
 				printf("Cannot get button: %s\n", SDLJBN_GetError());
+				break;
+			}
+			fprintf(f, "<span style=\"color: rgb(%d,%d,%d)\">%s</span> ",
+				r, g, b, buf);
+		}
+
+		fprintf(f, "<br>");
+		for (SDL_GameControllerAxis axis = SDL_CONTROLLER_AXIS_LEFTX;
+			axis < SDL_CONTROLLER_AXIS_MAX;
+			axis++)
+		{
+			char buf[256];
+			Uint8 r, g, b;
+			if (SDLJBN_GetAxisNameAndColor(j, axis, buf, &r, &g, &b) != 0)
+			{
+				printf("Cannot get axis: %s\n", SDLJBN_GetError());
 				break;
 			}
 			fprintf(f, "<span style=\"color: rgb(%d,%d,%d)\">%s</span> ",
