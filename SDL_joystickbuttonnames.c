@@ -24,21 +24,22 @@
 */
 #include "SDL_joystickbuttonnames.h"
 
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <SDL_pixels.h>
 
 
-typedef struct
-{
-	Uint8 r, g, b;
-} Color;
-
 const char *err = NULL;
+#include "db.h"
 
 static const char *DefaultButtonName(SDL_GameControllerButton button);
 static SDL_Color DefaultButtonColor(SDL_GameControllerButton button);
+static bool TryReadColor(
+	const char **cur, const char **nextColon, const char *nextComma,
+	Uint8 *component);
 
 int SDLJBN_GetButtonNameAndColor(SDL_Joystick *joystick,
                                  SDL_GameControllerButton button,
@@ -57,25 +58,88 @@ int SDLJBN_GetButtonNameAndColor(SDL_Joystick *joystick,
 	}
 	char guidBuf[256];
 	SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(joystick), guidBuf, 256);
+	const char *joystickName = SDL_JoystickName(joystick);
+	const char *buttonName = SDL_GameControllerGetStringForButton(button);
+	bool found = false;
+	// Search for a matching GUID + joystickName in the db
+	for (const char *cur = db; cur && *cur; cur = strchr(cur, '\n'))
+	{
+#define STR_NOT_EQ(expected, actualP, actualEnd)\
+	strlen(expected) != (actualEnd) - (actualP) || \
+	strncmp(expected, actualP, (actualEnd) - (actualP)) != 0
+		if (*cur == '\n') cur++;
+		if (*cur == NULL) break;
+		// Ignore hash comments
+		if (*cur == '#') continue;
+		// Compare GUID
+		const char *nextComma = strchr(cur, ',');
+		if (nextComma == NULL) continue;
+		if (STR_NOT_EQ(guidBuf, cur, nextComma)) continue;
+		// Same GUID; compare joystick name
+		cur = nextComma + 1;
+		nextComma = strchr(cur, ',');
+		if (nextComma == NULL) continue;
+		if (STR_NOT_EQ(joystickName, cur, nextComma)) continue;
+		// GUID and joystick name match; read name and colors
+		while (!found)
+		{
+			cur = nextComma + 1;
+			nextComma = strchr(cur, ',');
+			if (nextComma == NULL) break;
+			// Compare button name
+			const char *nextColon = strchr(cur, ':');
+			if (nextColon == NULL) continue;
+			if (STR_NOT_EQ(buttonName, cur, nextColon)) continue;
+			// Found the button name; read the real button name
+			cur = nextColon + 1;
+			nextColon = strchr(cur, ':');
+			if (nextColon == NULL) continue;
+			if (cur == nextColon)
+			{
+				// No real button name, just return the default
+				if (s) strcpy(s, DefaultButtonName(button));
+			}
+			else
+			{
+				if (s)
+				{
+					strncpy(s, cur, nextColon - cur);
+					s[nextColon - cur] = '\0';
+				}
+			}
+			char buf[256];
+			// R
+			if (!TryReadColor(&cur, &nextColon, nextComma, r)) continue;
+			// G
+			if (!TryReadColor(&cur, &nextColon, nextComma, g)) continue;
+			// B
+			if (!TryReadColor(&cur, &nextColon, nextComma, b)) continue;
+			found = true;
+		}
+		if (found) break;
+	}
 	printf("GUID: %s Name: \'%s\'\n", guidBuf, SDL_JoystickName(joystick));
 
-	if (s)
+	if (!found)
 	{
-		// Use our own defaults for the button names
-		strcpy(s, DefaultButtonName(button));
-	}
-	const SDL_Color defaultColor = DefaultButtonColor(button);
-	if (r)
-	{
-		*r = defaultColor.r;
-	}
-	if (g)
-	{
-		*g = defaultColor.g;
-	}
-	if (b)
-	{
-		*b = defaultColor.b;
+		if (s)
+		{
+			// Use our own defaults for the button names
+			strcpy(s, DefaultButtonName(button));
+		}
+		const SDL_Color defaultColor = DefaultButtonColor(button);
+		if (r)
+		{
+			*r = defaultColor.r;
+		}
+		if (g)
+		{
+			*g = defaultColor.g;
+		}
+		if (b)
+		{
+			*b = defaultColor.b;
+		}
 	}
 	return 0;
 }
@@ -208,6 +272,22 @@ static SDL_Color NewColor(Uint8 r, Uint8 g, Uint8 b)
 	c.b = b;
 	c.a = 255;
 	return c;
+}
+
+static bool TryReadColor(
+	const char **cur, const char **nextColon, const char *nextComma,
+	Uint8 *component)
+{
+	*cur = *nextColon + 1;
+	*nextColon = strchr(*cur, ':');
+	if (*nextColon == NULL) *nextColon = nextComma;
+	if (*cur == *nextColon) return false;
+	if (component)
+	{
+		char buf[256];
+		strncpy(buf, *cur, *nextColon - *cur);
+		*component = atoi(buf);
+	}
 }
 
 const char *SDLJBN_GetError(void)

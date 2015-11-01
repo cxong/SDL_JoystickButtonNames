@@ -1,0 +1,4 @@
+# Columns are: GUID, Joystick Name, button:name:r:g:b (repeated)
+# If button name is blank, use default name
+# Note: for ease of parsing, all tokens must end with comma
+6d0416c2000000000000504944564944,Logitech Dual Action,a:2:244:244:244,b:3:244:244:244,back:9:64:64:64,dpdown::64:64:64,dpleft::64:64:64,dpright::64:64:64,dpup::64:64:64,leftshoulder:5:64:64:64,leftstick::64:64:64,lefttrigger:7:64:64:64,leftx::64:64:64,lefty::64:64:64,rightshoulder:6:64:64:64,rightstick::64:64:64,righttrigger:8:64:64:64,rightx::64:64:64,righty::64:64:64,start:10:64:64:64,x:1:244:244:244,y:4:244:244:244,

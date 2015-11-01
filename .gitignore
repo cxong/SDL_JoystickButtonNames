@@ -54,3 +54,4 @@ examples/out.html
 examples/Debug/
 examples/SDL_joystickbuttonnames_examples.build/
 *.xcodeproj/
+db.h
