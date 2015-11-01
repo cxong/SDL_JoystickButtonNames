@@ -63,6 +63,8 @@ int main(int argc, char *argv[])
 			continue;
 		}
 
+		fprintf(f, "(%s): ", SDL_JoystickName(j));
+
 		for (SDL_GameControllerButton button = SDL_CONTROLLER_BUTTON_A;
 			button < SDL_CONTROLLER_BUTTON_MAX;
 			button++)

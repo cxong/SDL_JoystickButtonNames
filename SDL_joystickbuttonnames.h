@@ -43,10 +43,10 @@ int SDLJBN_GetButtonNameAndColor(SDL_Joystick *joystick,
                                  char *s, Uint8 *r, Uint8 *g, Uint8 *b);
 
 /* Convenience macros */
-#define SDLJBN_GetButtonName(gamecontroller, button, s)\
-	SDLJBN_GetButtonNameAndColor(gamecontroller, button, s, NULL, NULL, NULL);
-#define SDLJBN_GetButtonColor(gamecontroller, button, r, g, b)\
-	SDLJBN_GetButtonNameAndColor(gamecontroller, button, NULL, r, g, b);
+#define SDLJBN_GetButtonName(joystick, button, s)\
+	SDLJBN_GetButtonNameAndColor(joystick, button, s, NULL, NULL, NULL);
+#define SDLJBN_GetButtonColor(joystick, button, r, g, b)\
+	SDLJBN_GetButtonNameAndColor(joystick, button, NULL, r, g, b);
 
 const char *SDLJBN_GetError(void);
 
