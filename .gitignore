@@ -45,6 +45,12 @@ CMakeFiles/
 cmake_install.cmake
 examples/find_all_joy_buttons.dir/
 examples/lib/
+examples/CMakeScripts/
 
 # Testing
 examples/out.html
+
+# Xcode
+examples/Debug/
+examples/SDL_joystickbuttonnames_examples.build/
+*.xcodeproj/
