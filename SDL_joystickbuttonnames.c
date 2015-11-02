@@ -32,116 +32,158 @@
 #include <SDL_pixels.h>
 
 
+typedef struct
+{
+	SDL_JoystickGUID guid;
+	char joystickName[256];
+	char buttonNames[SDL_CONTROLLER_BUTTON_MAX][256];
+	SDL_Color buttonColors[SDL_CONTROLLER_BUTTON_MAX];
+	char axisNames[SDL_CONTROLLER_AXIS_MAX][256];
+	SDL_Color axisColors[SDL_CONTROLLER_AXIS_MAX];
+} JoystickButtonNames;
+
 const char *err = NULL;
+JoystickButtonNames *jbn = NULL;
+int nJBN = 0;
+JoystickButtonNames jDefault;
 #include "db.h"
 
-static const char *DefaultButtonName(SDL_GameControllerButton button);
-static SDL_Color DefaultButtonColor(SDL_GameControllerButton button);
-static bool TryReadColor(
-	const char **cur, const char **nextColon, const char *nextComma,
-	Uint8 *component);
 
-int SDLJBN_GetButtonNameAndColor(SDL_Joystick *joystick,
-                                 SDL_GameControllerButton button,
-                                 char *s, Uint8 *r, Uint8 *g, Uint8 *b)
+static JoystickButtonNames DefaultJoystickButtonNames(void);
+
+int SDLJBN_Init(void)
 {
-	if (joystick == NULL)
-	{
-		err = "joystick is NULL";
-		return -1;
+	// Don't reinitialise
+	if (jbn != NULL) return 0;
+
+#define READ_TOKEN(buf, p, end)\
+	if (end == NULL)\
+	{\
+		strcpy(buf, p);\
+		p = NULL;\
+	}\
+	else\
+	{\
+		strncpy(buf, p, end - p);\
+		buf[end - p] = '\0';\
+		p = end + 1;\
 	}
-	if (button < SDL_CONTROLLER_BUTTON_A ||
-		button >= SDL_CONTROLLER_BUTTON_MAX)
-	{
-		err = "button is invalid";
-		return -1;
-	}
-	char guidBuf[256];
-	SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(joystick), guidBuf, 256);
-	const char *joystickName = SDL_JoystickName(joystick);
-	const char *buttonName = SDL_GameControllerGetStringForButton(button);
-	bool found = false;
+
+	jDefault = DefaultJoystickButtonNames();
+
+	// Read compiled string button names into memory
 	// Search for a matching GUID + joystickName in the db
-	for (const char *cur = db; cur && *cur; cur = strchr(cur, '\n'))
+	for (const char *cur = db; cur; )
 	{
+		const char *nl = strchr(cur, '\n');
+		char line[2048];
+		READ_TOKEN(line, cur, nl);
+
 #define STR_NOT_EQ(expected, actualP, actualEnd)\
 	strlen(expected) != (actualEnd) - (actualP) || \
 	strncmp(expected, actualP, (actualEnd) - (actualP)) != 0
-		if (*cur == '\n') cur++;
-		if (*cur == NULL) break;
+		const char *curL = line;
 		// Ignore hash comments
-		if (*cur == '#') continue;
-		// Compare GUID
-		const char *nextComma = strchr(cur, ',');
-		if (nextComma == NULL) continue;
-		if (STR_NOT_EQ(guidBuf, cur, nextComma)) continue;
-		// Same GUID; compare joystick name
-		cur = nextComma + 1;
-		nextComma = strchr(cur, ',');
-		if (nextComma == NULL) continue;
-		if (STR_NOT_EQ(joystickName, cur, nextComma)) continue;
-		// GUID and joystick name match; read name and colors
-		while (!found)
+		if (*curL == '#') continue;
+
+		char buf[256];
+		const char *nextComma;
+		JoystickButtonNames j = jDefault;
+
+		// Read GUID
+		nextComma = strchr(curL, ',');
+		if (nextComma == NULL || cur == nextComma) continue;
+		READ_TOKEN(buf, curL, nextComma);
+		j.guid = SDL_JoystickGetGUIDFromString(buf);
+
+		// Read joystick name
+		nextComma = strchr(curL, ',');
+		if (nextComma == NULL || curL == nextComma) continue;
+		READ_TOKEN(j.joystickName, curL, nextComma);
+
+		// Read name and colors
+		for (;; curL = nextComma + 1)
 		{
-			cur = nextComma + 1;
-			nextComma = strchr(cur, ',');
+			nextComma = strchr(curL, ',');
 			if (nextComma == NULL) break;
-			// Compare button name
-			const char *nextColon = strchr(cur, ':');
-			if (nextColon == NULL) continue;
-			if (STR_NOT_EQ(buttonName, cur, nextColon)) continue;
-			// Found the button name; read the real button name
-			cur = nextColon + 1;
-			nextColon = strchr(cur, ':');
-			if (nextColon == NULL) continue;
-			if (cur == nextColon)
+
+			const char *nextColon;
+
+			nextColon = strchr(curL, ':');
+			if (nextColon == NULL || curL == nextColon) continue;
+			READ_TOKEN(buf, curL, nextColon);
+			const SDL_GameControllerButton button =
+				SDL_GameControllerGetButtonFromString(buf);
+			const SDL_GameControllerAxis axis =
+				SDL_GameControllerGetAxisFromString(buf);
+			char *name;
+			SDL_Color *color;
+			if (button != SDL_CONTROLLER_BUTTON_INVALID)
 			{
-				// No real button name, just return the default
-				if (s) strcpy(s, DefaultButtonName(button));
+				name = &j.buttonNames[(int)button];
+				color = &j.buttonColors[(int)button];
+			}
+			else if (axis != SDL_CONTROLLER_AXIS_INVALID)
+			{
+				name = &j.axisNames[(int)axis];
+				color = &j.axisColors[(int)axis];
 			}
 			else
 			{
-				if (s)
-				{
-					strncpy(s, cur, nextColon - cur);
-					s[nextColon - cur] = '\0';
-				}
+				continue;
 			}
-			char buf[256];
+			// Read the real button/axis name
+			nextColon = strchr(curL, ':');
+			if (nextColon == NULL) continue;
+			READ_TOKEN(name, curL, nextColon);
 			// R
-			if (!TryReadColor(&cur, &nextColon, nextComma, r)) continue;
+			nextColon = strchr(curL, ':');
+			if (nextColon == NULL) continue;
+			READ_TOKEN(buf, curL, nextColon);
+			color->r = atoi(buf);
 			// G
-			if (!TryReadColor(&cur, &nextColon, nextComma, g)) continue;
+			nextColon = strchr(curL, ':');
+			if (nextColon == NULL) continue;
+			READ_TOKEN(buf, curL, nextColon);
+			color->g = atoi(buf);
 			// B
-			if (!TryReadColor(&cur, &nextColon, nextComma, b)) continue;
-			found = true;
-		}
-		if (found) break;
-	}
-	printf("GUID: %s Name: \'%s\'\n", guidBuf, SDL_JoystickName(joystick));
+			READ_TOKEN(buf, curL, nextComma);
+			color->b = atoi(buf);
 
-	if (!found)
-	{
-		if (s)
-		{
-			// Use our own defaults for the button names
-			strcpy(s, DefaultButtonName(button));
+			color->a = 255;
 		}
-		const SDL_Color defaultColor = DefaultButtonColor(button);
-		if (r)
-		{
-			*r = defaultColor.r;
-		}
-		if (g)
-		{
-			*g = defaultColor.g;
-		}
-		if (b)
-		{
-			*b = defaultColor.b;
-		}
+		nJBN++;
+		jbn = SDL_realloc(jbn, nJBN * sizeof *jbn);
+		memcpy(jbn + nJBN - 1, &j, sizeof j);
 	}
+
 	return 0;
+}
+
+static const char *DefaultButtonName(SDL_GameControllerButton button);
+static const char *DefaultAxisName(SDL_GameControllerAxis axis);
+static SDL_Color DefaultButtonColor(SDL_GameControllerButton button);
+static SDL_Color DefaultAxisColor(SDL_GameControllerAxis axis);
+
+static JoystickButtonNames DefaultJoystickButtonNames(void)
+{
+	JoystickButtonNames j;
+	memset(&j, 0, sizeof j);
+	for (SDL_GameControllerButton button = SDL_CONTROLLER_BUTTON_A;
+		button < SDL_CONTROLLER_BUTTON_MAX;
+		button++)
+	{
+		strcpy(j.buttonNames + (int)button, DefaultButtonName(button));
+		j.buttonColors[(int)button] = DefaultButtonColor(button);
+	}
+	for (SDL_GameControllerAxis axis = SDL_CONTROLLER_AXIS_LEFTX;
+		axis < SDL_CONTROLLER_AXIS_MAX;
+		axis++)
+	{
+		strcpy(j.axisNames + (int)axis, DefaultAxisName(axis));
+		j.axisColors[(int)axis] = DefaultAxisColor(axis);
+	}
+	return j;
 }
 
 static const char *DefaultButtonName(SDL_GameControllerButton button)
@@ -163,6 +205,20 @@ static const char *DefaultButtonName(SDL_GameControllerButton button)
 	case SDL_CONTROLLER_BUTTON_DPAD_DOWN: return "D-pad Down";
 	case SDL_CONTROLLER_BUTTON_DPAD_LEFT: return "D-pad Left";
 	case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: return "D-pad Right";
+	default: return "";
+	}
+}
+
+static const char *DefaultAxisName(SDL_GameControllerAxis axis)
+{
+	switch (axis)
+	{
+	case SDL_CONTROLLER_AXIS_LEFTX: return "Left Stick X";
+	case SDL_CONTROLLER_AXIS_LEFTY: return "Left Stick Y";
+	case SDL_CONTROLLER_AXIS_RIGHTX: return "Right Stick X";
+	case SDL_CONTROLLER_AXIS_RIGHTY: return "Right Stick Y";
+	case SDL_CONTROLLER_AXIS_TRIGGERLEFT: return "LT";
+	case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: return "RT";
 	default: return "";
 	}
 }
@@ -193,62 +249,6 @@ static SDL_Color DefaultButtonColor(SDL_GameControllerButton button)
 	}
 }
 
-static const char *DefaultAxisName(SDL_GameControllerAxis axis);
-static SDL_Color DefaultAxisColor(SDL_GameControllerAxis axis);
-
-int SDLJBN_GetAxisNameAndColor(SDL_Joystick *joystick,
-                               SDL_GameControllerAxis axis,
-                               char *s, Uint8 *r, Uint8 *g, Uint8 *b)
-{
-	if (joystick == NULL)
-	{
-		err = "joystick is NULL";
-		return -1;
-	}
-	if (axis < SDL_CONTROLLER_AXIS_LEFTX || axis >= SDL_CONTROLLER_AXIS_MAX)
-	{
-		err = "axis is invalid";
-		return -1;
-	}
-	char guidBuf[256];
-	SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(joystick), guidBuf, 256);
-	printf("GUID: %s Name: \'%s\'\n", guidBuf, SDL_JoystickName(joystick));
-
-	if (s)
-	{
-		// Use our own defaults for the axis names
-		strcpy(s, DefaultAxisName(axis));
-	}
-	const SDL_Color defaultColor = DefaultAxisColor(axis);
-	if (r)
-	{
-		*r = defaultColor.r;
-	}
-	if (g)
-	{
-		*g = defaultColor.g;
-	}
-	if (b)
-	{
-		*b = defaultColor.b;
-	}
-	return 0;
-}
-
-static const char *DefaultAxisName(SDL_GameControllerAxis axis)
-{
-	switch (axis)
-	{
-	case SDL_CONTROLLER_AXIS_LEFTX: return "Left Stick X";
-	case SDL_CONTROLLER_AXIS_LEFTY: return "Left Stick Y";
-	case SDL_CONTROLLER_AXIS_RIGHTX: return "Right Stick X";
-	case SDL_CONTROLLER_AXIS_RIGHTY: return "Right Stick Y";
-	case SDL_CONTROLLER_AXIS_TRIGGERLEFT: return "LT";
-	case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: return "RT";
-	default: return "";
-	}
-}
-
 static SDL_Color DefaultAxisColor(SDL_GameControllerAxis axis)
 {
 	// Default colors for Xbox 360 controller
@@ -264,6 +264,96 @@ static SDL_Color DefaultAxisColor(SDL_GameControllerAxis axis)
 	}
 }
 
+int SDLJBN_GetButtonNameAndColor(SDL_Joystick *joystick,
+                                 SDL_GameControllerButton button,
+                                 char *s, Uint8 *r, Uint8 *g, Uint8 *b)
+{
+	SDLJBN_Init();
+
+	if (joystick == NULL)
+	{
+		err = "joystick is NULL";
+		return -1;
+	}
+	if (button < SDL_CONTROLLER_BUTTON_A ||
+		button >= SDL_CONTROLLER_BUTTON_MAX)
+	{
+		err = "button is invalid";
+		return -1;
+	}
+	// Use defaults first
+	if (s) strcpy(s, jDefault.buttonNames[(int)button]);
+	if (r) *r = jDefault.buttonColors[(int)button].r;
+	if (g) *g = jDefault.buttonColors[(int)button].g;
+	if (b) *b = jDefault.buttonColors[(int)button].b;
+
+	const SDL_JoystickGUID guid = SDL_JoystickGetGUID(joystick);
+	const char *joystickName = SDL_JoystickName(joystick);
+	// Search for a matching GUID + joystickName in the db
+	for (int i = 0; i < nJBN; i++)
+	{
+		const JoystickButtonNames *j = jbn + i;
+		if (memcmp(&j->guid, &guid, sizeof guid) == 0 &&
+			strcmp(j->joystickName, joystickName) == 0)
+		{
+			// GUID and joystick name match; read name and colors
+			if (s && strlen(j->buttonNames[(int)button]) > 0)
+				strcpy(s, j->buttonNames[(int)button]);
+			if (r) *r = j->buttonColors[(int)button].r;
+			if (g) *g = j->buttonColors[(int)button].g;
+			if (b) *b = j->buttonColors[(int)button].b;
+			break;
+		}
+	}
+
+	return 0;
+}
+
+
+int SDLJBN_GetAxisNameAndColor(SDL_Joystick *joystick,
+                               SDL_GameControllerAxis axis,
+                               char *s, Uint8 *r, Uint8 *g, Uint8 *b)
+{
+	SDLJBN_Init();
+
+	if (joystick == NULL)
+	{
+		err = "joystick is NULL";
+		return -1;
+	}
+	if (axis < SDL_CONTROLLER_AXIS_LEFTX || axis >= SDL_CONTROLLER_AXIS_MAX)
+	{
+		err = "axis is invalid";
+		return -1;
+	}
+	// Use defaults first
+	if (s) strcpy(s, jDefault.axisNames[(int)axis]);
+	if (r) *r = jDefault.axisColors[(int)axis].r;
+	if (g) *g = jDefault.axisColors[(int)axis].g;
+	if (b) *b = jDefault.axisColors[(int)axis].b;
+
+	const SDL_JoystickGUID guid = SDL_JoystickGetGUID(joystick);
+	const char *joystickName = SDL_JoystickName(joystick);
+	// Search for a matching GUID + joystickName in the db
+	for (int i = 0; i < nJBN; i++)
+	{
+		const JoystickButtonNames *j = jbn + i;
+		if (memcmp(&j->guid, &guid, sizeof guid) == 0 &&
+			strcmp(j->joystickName, joystickName) == 0)
+		{
+			// GUID and joystick name match; read name and colors
+			if (s && strlen(j->axisNames[(int)axis]) > 0)
+				strcpy(s, j->axisNames[(int)axis]);
+			if (r) *r = j->axisColors[(int)axis].r;
+			if (g) *g = j->axisColors[(int)axis].g;
+			if (b) *b = j->axisColors[(int)axis].b;
+			break;
+		}
+	}
+
+	return 0;
+}
+
 static SDL_Color NewColor(Uint8 r, Uint8 g, Uint8 b)
 {
 	SDL_Color c;
@@ -272,22 +362,6 @@ static SDL_Color NewColor(Uint8 r, Uint8 g, Uint8 b)
 	c.b = b;
 	c.a = 255;
 	return c;
-}
-
-static bool TryReadColor(
-	const char **cur, const char **nextColon, const char *nextComma,
-	Uint8 *component)
-{
-	*cur = *nextColon + 1;
-	*nextColon = strchr(*cur, ':');
-	if (*nextColon == NULL) *nextColon = nextComma;
-	if (*cur == *nextColon) return false;
-	if (component)
-	{
-		char buf[256];
-		strncpy(buf, *cur, *nextColon - *cur);
-		*component = atoi(buf);
-	}
 }
 
 const char *SDLJBN_GetError(void)
