@@ -1,0 +1,121 @@
+body {
+  font-family: sans-serif;
+}
+div {
+  background: url("Xbox_Controller.svg.png");
+  width: 320px;
+  height: 215px;
+}
+span {
+  position: absolute;
+  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+  font-weight: bold;
+  padding: 2px;
+  text-align:center;
+  font-size: 12px;
+}
+/* A */
+span:nth-child(1) {
+  margin-left: 241px;
+  margin-top: 117px;
+}
+/* B */
+span:nth-child(2) {
+  margin-left: 266px;
+  margin-top: 97px;
+}
+/* X */
+span:nth-child(3) {
+  margin-left: 218px;
+  margin-top: 97px;
+}
+/* Y */
+span:nth-child(4) {
+  margin-left: 241px;
+  margin-top: 77px;
+}
+/* back */
+span:nth-child(5) {
+  margin-left: 121px;
+  margin-top: 97px;
+}
+/* guide */
+span:nth-child(6) {
+  margin-left: 135px;
+  margin-top: 87px;
+}
+/* start */
+span:nth-child(7) {
+  margin-left: 181px;
+  margin-top: 97px;
+}
+/* left stick */
+span:nth-child(8) {
+  margin-left: 51px;
+  margin-top: 97px;
+}
+/* right stick */
+span:nth-child(9) {
+  margin-left: 175px;
+  margin-top: 140px;
+}
+/* left shoulder */
+span:nth-child(10) {
+  margin-left: 61px;
+  margin-top: 40px;
+}
+/* right shoulder */
+span:nth-child(11) {
+  margin-left: 238px;
+  margin-top: 40px;
+}
+/* dpad up */
+span:nth-child(12) {
+  margin-left: 101px;
+  margin-top: 130px;
+}
+/* dpad down */
+span:nth-child(13) {
+  margin-left: 101px;
+  margin-top: 160px;
+}
+/* dpad left */
+span:nth-child(14) {
+  margin-left: 81px;
+  margin-top: 150px;
+}
+/* dpad right */
+span:nth-child(15) {
+  margin-left: 121px;
+  margin-top: 140px;
+}
+/* left x */
+span:nth-child(16) {
+  margin-left: 41px;
+  margin-top: 113px;
+}
+/* left y */
+span:nth-child(17) {
+  margin-left: 41px;
+  margin-top: 81px;
+}
+/* right x */
+span:nth-child(18) {
+  margin-left: 185px;
+  margin-top: 153px;
+}
+/* right y */
+span:nth-child(19) {
+  margin-left: 185px;
+  margin-top: 127px;
+}
+/* trigger left */
+span:nth-child(20) {
+  margin-left: 71px;
+  margin-top: 20px;
+}
+/* trigger right */
+span:nth-child(21) {
+  margin-left: 235px;
+  margin-top: 20px;
+}

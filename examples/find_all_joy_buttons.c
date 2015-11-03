@@ -36,7 +36,9 @@ int main(int argc, char *argv[])
 
 	// Detect all current controllers
 	const int numJoysticks = SDL_NumJoysticks();
-	fprintf(f, "<html><body><h1>%d joystick(s) detected</h1>", numJoysticks);
+	fprintf(f, "<html>");
+	fprintf(f, "<link rel=\"stylesheet\" href=\"find_all_joy_buttons_assets/style.css\">");
+	fprintf(f, "<body><h1>%d joystick(s) detected</h1>", numJoysticks);
 	for (int i = 0; i < numJoysticks; i++)
 	{
 		fprintf(f, "<h2>Joystick %d: ", i);
@@ -63,9 +65,10 @@ int main(int argc, char *argv[])
 			continue;
 		}
 
-		fprintf(f, "(%s): ", SDL_JoystickName(j));
+		char buf[256];
+		SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(j), buf, 256);
+		fprintf(f, "(%s, %s):</h2><div>", SDL_JoystickName(j), buf);
 
-		fprintf(f, "<br>");
 		for (SDL_GameControllerButton button = SDL_CONTROLLER_BUTTON_A;
 			button < SDL_CONTROLLER_BUTTON_MAX;
 			button++)
@@ -81,7 +84,6 @@ int main(int argc, char *argv[])
 				r, g, b, buf);
 		}
 
-		fprintf(f, "<br>");
 		for (SDL_GameControllerAxis axis = SDL_CONTROLLER_AXIS_LEFTX;
 			axis < SDL_CONTROLLER_AXIS_MAX;
 			axis++)
@@ -96,6 +98,8 @@ int main(int argc, char *argv[])
 			fprintf(f, "<span style=\"color: rgb(%d,%d,%d)\">%s</span> ",
 				r, g, b, buf);
 		}
+
+		fprintf(f, "</div>");
 
 		SDL_GameControllerClose(gc);
 	}
