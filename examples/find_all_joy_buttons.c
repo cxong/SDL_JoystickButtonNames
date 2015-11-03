@@ -17,6 +17,11 @@ int main(int argc, char *argv[])
 		printf("SDL_Init error: %s\n", SDL_GetError());
 		goto bail;
 	}
+	if (SDLJBN_Init() != 0)
+	{
+		printf("SDLJBN_Init error: %s\n", SDLJBN_GetError());
+		goto bail;
+	}
 
 	// Load game controller mappings
 	// https://github.com/gabomdq/SDL_GameControllerDB
@@ -25,6 +30,13 @@ int main(int argc, char *argv[])
 		printf("Cannot load controller mappings file: %s\n", SDL_GetError());
 		goto bail;
 	}
+	int read = SDLJBN_AddMappingsFromFile("../gamecontrollerbuttondb.txt");
+	if (read == -1)
+	{
+		printf("Cannot load button mappings file: %s\n", SDLJBN_GetError());
+		goto bail;
+	}
+	printf("Read %d new mappings\n", read);
 
 	// Open output file
 	f = fopen("out.html", "w");
@@ -107,6 +119,7 @@ int main(int argc, char *argv[])
 
 bail:
 	fclose(f);
+	SDLJBN_Quit();
 	SDL_Quit();
 	return 0;
 }

@@ -32,6 +32,20 @@ extern "C" {
 #endif
 
 /**
+ * \return -1 on error; 0 on success
+ */
+int SDLJBN_Init(void);
+
+void SDLJBN_Quit(void);
+
+/**
+ *  Load a set of mappings from a file
+ * 
+ * \return number of mappings added, -1 on error
+ */
+int SDLJBN_AddMappingsFromFile(const char *file);
+
+/**
  * Get the button name and color for an SDL_GameControllerButton
  * Arguments can be set to NULL if they are not required
  * Use SDLJBN_GetError to get the error reason

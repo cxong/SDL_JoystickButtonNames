@@ -50,12 +50,72 @@ JoystickButtonNames jDefault;
 
 
 static JoystickButtonNames DefaultJoystickButtonNames(void);
+static int ReadMappingsString(const char *s);
 
 int SDLJBN_Init(void)
 {
 	// Don't reinitialise
 	if (jbn != NULL) return 0;
 
+	jDefault = DefaultJoystickButtonNames();
+
+	ReadMappingsString(db);
+
+	return 0;
+}
+
+void SDLJBN_Quit(void)
+{
+	SDL_free(jbn);
+	jbn = NULL;
+}
+
+int SDLJBN_AddMappingsFromFile(const char *file)
+{
+	int ret = 0;
+
+	SDLJBN_Init();
+	SDL_RWops *rwops = SDL_RWFromFile(file, "r");
+	if (rwops == NULL)
+	{
+		err = "Cannot open file";
+		ret = -1;
+		goto bail;
+	}
+
+	// Read file into memory
+	const long fsize = rwops->size(rwops);
+	if (fsize == -1)
+	{
+		err = "Cannot find file size";
+		ret = -1;
+		goto bail;
+	}
+	char *s = SDL_malloc(fsize + 1);
+	if (s == NULL)
+	{
+		err = "Out of memory";
+		ret = -1;
+		goto bail;
+	}
+	if (SDL_RWread(rwops, s, fsize, 1) == 0)
+	{
+		err = "Cannot read file";
+		ret = -1;
+		goto bail;
+	}
+	s[fsize] = '\0';
+
+	ret = ReadMappingsString(s);
+
+bail:
+	SDL_RWclose(rwops);
+	SDL_free(s);
+	return ret;
+}
+
+static int ReadMappingsString(const char *s)
+{
 #define READ_TOKEN(buf, p, end)\
 	if (end == NULL)\
 	{\
@@ -69,11 +129,10 @@ int SDLJBN_Init(void)
 		p = end + 1;\
 	}
 
-	jDefault = DefaultJoystickButtonNames();
-
 	// Read compiled string button names into memory
 	// Search for a matching GUID + joystickName in the db
-	for (const char *cur = db; cur; )
+	int read = 0;
+	for (const char *cur = s; cur;)
 	{
 		const char *nl = strchr(cur, '\n');
 		char line[2048];
@@ -100,6 +159,20 @@ int SDLJBN_Init(void)
 		nextComma = strchr(curL, ',');
 		if (nextComma == NULL || curL == nextComma) continue;
 		READ_TOKEN(j.joystickName, curL, nextComma);
+
+		// Check if GUID+joystick name already exists
+		bool exists = false;
+		for (int i = 0; i < nJBN; i++)
+		{
+			const JoystickButtonNames *jp = jbn + i;
+			if (memcmp(&jp->guid, &j.guid, sizeof j.guid) == 0 &&
+				strcmp(jp->joystickName, j.joystickName) == 0)
+			{
+				exists = true;
+				break;
+			}
+		}
+		if (exists) continue;
 
 		// Read name and colors
 		for (;; curL = nextComma + 1)
@@ -153,11 +226,11 @@ int SDLJBN_Init(void)
 			color->a = 255;
 		}
 		nJBN++;
+		read++;
 		jbn = SDL_realloc(jbn, nJBN * sizeof *jbn);
 		memcpy(jbn + nJBN - 1, &j, sizeof j);
 	}
-
-	return 0;
+	return read;
 }
 
 static const char *DefaultButtonName(SDL_GameControllerButton button);
