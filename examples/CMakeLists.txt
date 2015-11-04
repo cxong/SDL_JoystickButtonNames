@@ -11,7 +11,7 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 find_package(PkgConfig)
-pkg_search_module(SDL2 sdl2)
+pkg_search_module(SDL2 ../sdl2)
 if(NOT "${SDL2_FOUND}")
   find_package(SDL2 REQUIRED)
 endif()
