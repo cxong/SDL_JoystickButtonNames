@@ -30,6 +30,4 @@ before_script:
   - export CTEST_OUTPUT_ON_FAILURE=1
 
 script:
-  - cd examples
-  - cmake .
-  - make -j2
+  - cd examples && cmake . && make -j2
