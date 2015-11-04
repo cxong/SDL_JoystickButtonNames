@@ -1,0 +1,35 @@
+sudo: false
+
+language: c
+
+compiler:
+  - gcc
+  - clang
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc-4.8
+
+before_install:
+  - bash build/travis-ci/install-sdl2.sh
+install:
+  # SDL2
+  - export SDL_PREFIX=$HOME/sdl2
+  - export PKG_CONFIG_PATH=$SDL_PREFIX/lib/pkgconfig
+  - export PATH=$PATH:$SDL_PREFIX/bin/
+cache:
+  directories:
+  - $HOME/sdl2
+before_script:
+    # force newer gcc version
+  - if [ "$CC" = "gcc" ]; then export CC="gcc-4.8"; fi
+    # show which tests failed
+  - export CTEST_OUTPUT_ON_FAILURE=1
+
+script:
+  - cd examples
+  - cmake .
+  - make -j2
