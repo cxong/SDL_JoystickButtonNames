@@ -43,7 +43,7 @@ Win32/
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
-examples/find_all_joy_buttons.dir/
+examples/*.dir/
 examples/lib/
 examples/CMakeScripts/
 
@@ -52,6 +52,6 @@ examples/out.html
 
 # Xcode
 examples/Debug/
-examples/SDL_joystickbuttonnames_examples.build/
+examples/*.build/
 *.xcodeproj/
 db.h
