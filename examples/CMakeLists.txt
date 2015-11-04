@@ -10,7 +10,11 @@ endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
-find_package(SDL2 REQUIRED)
+find_package(PkgConfig)
+pkg_search_module(SDL2 sdl2)
+if(NOT "${SDL2_FOUND}")
+  find_package(SDL2 REQUIRED)
+endif()
 
 include_directories(.. ${SDL2_INCLUDE_DIR})
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/lib)
