@@ -27,6 +27,8 @@
 *.i*86
 *.x86_64
 *.hex
+find_all_joy_buttons
+minimal
 
 # Debug files
 *.dSYM/
@@ -55,3 +57,7 @@ examples/Debug/
 examples/*.build/
 *.xcodeproj/
 db.h
+
+# Linux
+Makefile
+

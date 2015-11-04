@@ -193,12 +193,12 @@ static int ReadMappingsString(const char *s)
 			SDL_Color *color;
 			if (button != SDL_CONTROLLER_BUTTON_INVALID)
 			{
-				name = &j.buttonNames[(int)button];
+				name = j.buttonNames[(int)button];
 				color = &j.buttonColors[(int)button];
 			}
 			else if (axis != SDL_CONTROLLER_AXIS_INVALID)
 			{
-				name = &j.axisNames[(int)axis];
+				name = j.axisNames[(int)axis];
 				color = &j.axisColors[(int)axis];
 			}
 			else
@@ -246,14 +246,14 @@ static JoystickButtonNames DefaultJoystickButtonNames(void)
 		button < SDL_CONTROLLER_BUTTON_MAX;
 		button++)
 	{
-		strcpy(j.buttonNames + (int)button, DefaultButtonName(button));
+		strcpy(j.buttonNames[(int)button], DefaultButtonName(button));
 		j.buttonColors[(int)button] = DefaultButtonColor(button);
 	}
 	for (SDL_GameControllerAxis axis = SDL_CONTROLLER_AXIS_LEFTX;
 		axis < SDL_CONTROLLER_AXIS_MAX;
 		axis++)
 	{
-		strcpy(j.axisNames + (int)axis, DefaultAxisName(axis));
+		strcpy(j.axisNames[(int)axis], DefaultAxisName(axis));
 		j.axisColors[(int)axis] = DefaultAxisColor(axis);
 	}
 	return j;

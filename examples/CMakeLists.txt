@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 2.8)
 project(SDL_joystickbuttonnames_examples)
 
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+  add_definitions(-std=c99)
+elseif(MSVC)
+else()
+  add_definitions(-std=gnu99)
+endif()
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 find_package(SDL2 REQUIRED)
