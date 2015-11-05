@@ -18,7 +18,7 @@ Given the following code:
     SDL_Joystick *joy;
     char name[256];
     Uint8 r, g, b;
-    SDLJBN_GetButtonNameAndColor(j, SDL_CONTROLLER_BUTTON_A, name, &r, &g, &b);
+    SDLJBN_GetButtonNameAndColor(joy, SDL_CONTROLLER_BUTTON_A, name, &r, &g, &b);
     printf("Button A is %s with color rgb(%d,%d,%d)\n", name, r, g, b);
 
 If you have an Xbox 360 controller connected, this will print:
