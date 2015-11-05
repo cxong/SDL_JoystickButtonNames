@@ -73,6 +73,7 @@ void SDLJBN_Quit(void)
 int SDLJBN_AddMappingsFromFile(const char *file)
 {
 	int ret = 0;
+	char *s = NULL;
 
 	SDLJBN_Init();
 	SDL_RWops *rwops = SDL_RWFromFile(file, "r");
@@ -91,7 +92,7 @@ int SDLJBN_AddMappingsFromFile(const char *file)
 		ret = -1;
 		goto bail;
 	}
-	char *s = SDL_malloc(fsize + 1);
+	s = SDL_malloc(fsize + 1);
 	if (s == NULL)
 	{
 		err = "Out of memory";
