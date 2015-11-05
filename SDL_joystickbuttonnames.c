@@ -139,6 +139,12 @@ static int ReadMappingsString(const char *s)
 		char line[2048];
 		READ_TOKEN(line, cur, nl);
 
+		char buf[256];
+
+		// Check for the platform string
+		sprintf(buf, "platform:%s", SDL_GetPlatform());
+		if (strstr(line, buf) == NULL) continue;
+
 #define STR_NOT_EQ(expected, actualP, actualEnd)\
 	strlen(expected) != (actualEnd) - (actualP) || \
 	strncmp(expected, actualP, (actualEnd) - (actualP)) != 0
@@ -146,7 +152,6 @@ static int ReadMappingsString(const char *s)
 		// Ignore hash comments
 		if (*curL == '#') continue;
 
-		char buf[256];
 		const char *nextComma;
 		JoystickButtonNames j = jDefault;
 
