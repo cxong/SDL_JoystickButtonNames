@@ -23,6 +23,8 @@ int main(int argc, char *argv[])
 		goto bail;
 	}
 
+	printf("Platform: %s\n", SDL_GetPlatform());
+
 	// Load game controller mappings
 	// https://github.com/gabomdq/SDL_GameControllerDB
 	if (SDL_GameControllerAddMappingsFromFile("gamecontrollerdb.txt") == -1)

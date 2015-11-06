@@ -1,4 +1,4 @@
-include_directories(${SDL2_INCLUDE_DIR})
+include_directories(${SDL2_INCLUDE_DIRS})
 
 file(READ gamecontrollerbuttondb.txt DB)
 # Escape the newlines so it appears as multi line string in C
@@ -10,4 +10,4 @@ set_source_files_properties(
 
 add_library(SDL_joystickbuttonnames STATIC
   SDL_joystickbuttonnames.c SDL_joystickbuttonnames.h)
-target_link_libraries(SDL_joystickbuttonnames ${SDL2_LIBRARY})
+target_link_libraries(SDL_joystickbuttonnames ${SDL2_LIBRARIES})

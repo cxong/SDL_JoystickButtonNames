@@ -11,12 +11,13 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 find_package(PkgConfig)
-pkg_search_module(SDL2 ../sdl2)
+pkg_search_module(SDL2 sdl2)
 if(NOT "${SDL2_FOUND}")
   find_package(SDL2 REQUIRED)
 endif()
+link_directories(${SDL2_LIBRARY_DIRS})
 
-include_directories(.. ${SDL2_INCLUDE_DIR})
+include_directories(.. ${SDL2_INCLUDE_DIRS})
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/lib)
 
 # libSDLMain comes with libSDL if needed on certain platforms
