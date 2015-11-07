@@ -85,21 +85,21 @@ int SDLJBN_AddMappingsFromFile(const char *file)
 	}
 
 	// Read file into memory
-	const long fsize = rwops->size(rwops);
+	const Sint64 fsize = rwops->size(rwops);
 	if (fsize == -1)
 	{
 		err = "Cannot find file size";
 		ret = -1;
 		goto bail;
 	}
-	s = SDL_malloc(fsize + 1);
+	s = SDL_malloc((size_t)fsize + 1);
 	if (s == NULL)
 	{
 		err = "Out of memory";
 		ret = -1;
 		goto bail;
 	}
-	if (SDL_RWread(rwops, s, fsize, 1) == 0)
+	if (SDL_RWread(rwops, s, (size_t)fsize, 1) == 0)
 	{
 		err = "Cannot read file";
 		ret = -1;
@@ -219,15 +219,15 @@ static int ReadMappingsString(const char *s)
 			nextColon = strchr(curL, ':');
 			if (nextColon == NULL) continue;
 			READ_TOKEN(buf, curL, nextColon);
-			color->r = atoi(buf);
+			color->r = (Uint8)atoi(buf);
 			// G
 			nextColon = strchr(curL, ':');
 			if (nextColon == NULL) continue;
 			READ_TOKEN(buf, curL, nextColon);
-			color->g = atoi(buf);
+			color->g = (Uint8)atoi(buf);
 			// B
 			READ_TOKEN(buf, curL, nextComma);
-			color->b = atoi(buf);
+			color->b = (Uint8)atoi(buf);
 
 			color->a = 255;
 		}
