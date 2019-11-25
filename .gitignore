@@ -36,10 +36,16 @@ minimal
 # MSVC
 *.vcxproj
 *.vcxproj.filters
+*.ninja
 *.opensdf
 *.sdf
 *.sln
+.cmake/
+.ninja*
+.vs/
 Win32/
+CMakeSettings.json
+VSInheritEnvironments.txt
 
 # CMake
 CMakeCache.txt

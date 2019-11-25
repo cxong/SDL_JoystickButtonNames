@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 project(SDL_joystickbuttonnames_examples)
+cmake_policy(SET CMP0054 NEW)
 
 if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
   add_definitions(-std=c99)

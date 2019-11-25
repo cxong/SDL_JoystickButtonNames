@@ -120,7 +120,10 @@ int main(int argc, char *argv[])
 	fprintf(f, "</body></html>");
 
 bail:
-	fclose(f);
+	if (f != NULL)
+	{
+		fclose(f);
+	}
 	SDLJBN_Quit();
 	SDL_Quit();
 	return 0;
