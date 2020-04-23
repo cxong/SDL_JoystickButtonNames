@@ -40,6 +40,7 @@ minimal
 *.opensdf
 *.sdf
 *.sln
+*.user
 .cmake/
 .ninja*
 .vs/
