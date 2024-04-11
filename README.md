@@ -1,5 +1,5 @@
 # SDL_JoystickButtonNames
-[![Build Status](https://travis-ci.org/cxong/SDL_JoystickButtonNames.svg?branch=master)](https://travis-ci.org/cxong/SDL_JoystickButtonNames)
+[![Build Status](https://github.com/cxong/SDL_JoystickButtonNames/actions/workflows/build.yml/badge.svg)](https://github.com/cxong/SDL_JoystickButtonNames/actions/workflows/build.yml)
 
 A small library to get joystick button names and colors, to be used with SDL2
 
