@@ -47,6 +47,7 @@ minimal
 Win32/
 CMakeSettings.json
 VSInheritEnvironments.txt
+x64/
 
 # CMake
 CMakeCache.txt
